@@ -1,0 +1,17 @@
+# Visual Studio tymczasowe i pliki builda
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+*.user
+*.aps
+*.vcxproj.user
+
+# Pliki wykonywalne i binarne
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ilk
