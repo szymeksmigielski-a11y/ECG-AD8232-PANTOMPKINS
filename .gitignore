@@ -15,3 +15,10 @@ x86/
 *.obj
 *.pdb
 *.ilk
+
+# Wyjatek: DLL-e SFML potrzebne do uruchomienia
+!DESKTOP-APP/SFML/bin/*.dll
+
+# Inne
+.Rhistory
+dist/

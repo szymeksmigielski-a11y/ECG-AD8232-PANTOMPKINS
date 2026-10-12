@@ -17,13 +17,17 @@ enum class AppState {
     SIGNAL_VIEW
 };
 
+// sciezki wzgledne - liczone od katalogu roboczego (folder z plikiem .exe)
+const std::string           FONT_PATH = "assets/font.ttf";
+const std::filesystem::path DATA_DIR  = "data";
+
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(1200, 1000), "EKG Browser");
     window.setFramerateLimit(60);
 
     sf::Font font;
-    if (!font.loadFromFile("E:\\VS\\ECGPROJECTOR\\ECGPROJECTOR\\assets\\font.ttf")) {
+    if (!font.loadFromFile(FONT_PATH)) {
         std::cerr << "Blad: Nie znaleziono pliku czcionki font.ttf!" << std::endl;
         return -1;
     }
@@ -31,7 +35,7 @@ int main() {
     DataLoader loader;
     std::vector<std::string> csvFiles;
     try {
-        csvFiles = loader.scanFolder("E:\\VS\\ECGPROJECTOR\\ECGPROJECTOR\\data");
+        csvFiles = loader.scanFolder(DATA_DIR.string());
     }
     catch (const ECGException& e) {
         std::cerr << "Blad skanowania folderu: " << e.what() << std::endl;
@@ -108,7 +112,7 @@ int main() {
     title.setPosition(30.0f, 30.0f);
     title.setFillColor(sf::Color(180, 180, 255));
 
-    // --- DANE SYGNA£U ---
+    // --- DANE SYGNA≈ÅU ---
     AppState currentState = AppState::FILE_BROWSER;
     std::vector<ECGSample> rawData;
     sf::VertexArray plot_raw;
@@ -118,7 +122,7 @@ int main() {
     float scrollSpeed = 10.0f;
     ECGStats currentStats;
 
-    // --- PRZYCISK WR”∆ ---
+    // --- PRZYCISK WR√ìƒÜ ---
     sf::RectangleShape backButton(sf::Vector2f(120.0f, 35.0f));
     backButton.setPosition(10.0f, 10.0f);
     backButton.setFillColor(sf::Color(60, 60, 90));
@@ -130,7 +134,7 @@ int main() {
     backLabel.setFillColor(sf::Color::White);
 
     // -------------------------------------------------------
-    // G£”WNA P TLA
+    // G≈Å√ìWNA PƒòTLA
     // -------------------------------------------------------
     while (window.isOpen()) {
 
@@ -155,11 +159,11 @@ int main() {
                         if (convertButtons[i].getGlobalBounds().contains(mousePos)) {
 
                             int fileIdx = convertButtonFileIndex[i];
-                            std::string fullPath = "E:\\VS\\ECGPROJECTOR\\ECGPROJECTOR\\data\\" + csvFiles[fileIdx];
+                            std::string fullPath = (DATA_DIR / csvFiles[fileIdx]).string();
 
                             try {
                                 loader.convertCsvToBinary(fullPath);
-                                csvFiles = loader.scanFolder("E:\\VS\\ECGPROJECTOR\\ECGPROJECTOR\\data");
+                                csvFiles = loader.scanFolder(DATA_DIR.string());
                                 rebuildTiles();
                             }
                             catch (const ECGException& e) {
@@ -175,7 +179,7 @@ int main() {
                         for (size_t i = 0; i < tiles.size(); i++) {
                             if (tiles[i].getGlobalBounds().contains(mousePos)) {
 
-                                std::string path = "E:\\VS\\ECGPROJECTOR\\ECGPROJECTOR\\data\\" + csvFiles[i];
+                                std::string path = (DATA_DIR / csvFiles[i]).string();
                                 std::string ext = std::filesystem::path(path).extension().string();
 
                                 try {
@@ -192,7 +196,7 @@ int main() {
                                 PanTompkins_Pipeline panTompkins;
                                 auto result = panTompkins.run(rawData);
 
-                                // wykres surowego sygna≥u (gÛra, zielony)
+                                // wykres surowego sygna≈Çu (g√≥ra, zielony)
                                 plot_raw = sf::VertexArray(sf::LineStrip, rawData.size());
                                 for (size_t j = 0; j < rawData.size(); j++) {
                                     float x = float(j);
@@ -201,7 +205,7 @@ int main() {
                                     plot_raw[j].color = sf::Color::Green;
                                 }
 
-                                // wykres po pipeline (dÛ≥, czerwony)
+                                // wykres po pipeline (d√≥≈Ç, czerwony)
                                 plot_processed = sf::VertexArray(sf::LineStrip, result.integrated.size());
                                 for (size_t j = 0; j < result.integrated.size(); j++) {
                                     float x = float(j);
@@ -210,7 +214,7 @@ int main() {
                                     plot_processed[j].color = sf::Color::Red;
                                 }
 
-                                // linie QRS (pomaraÒczowe)
+                                // linie QRS (pomara≈Ñczowe)
                                 qrsLines = sf::VertexArray(sf::Lines);
                                 for (size_t j = 0; j < result.qrsMarkers.size(); j++) {
                                     if (result.qrsMarkers[j].value == 999999.0) {

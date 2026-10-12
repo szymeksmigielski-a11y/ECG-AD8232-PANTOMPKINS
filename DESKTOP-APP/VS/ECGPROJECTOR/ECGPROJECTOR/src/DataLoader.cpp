@@ -18,7 +18,7 @@ std::vector<ECGSample> DataLoader::loadFromCSV(const std::string& filename) {
         throw ECGException("Nie mozna otworzyc pliku: " + filename);  // <-- rzucamy
 
     std::string line;
-    std::getline(file, line); // pomiñ nag³ówek
+    std::getline(file, line); // pomiÅ„ nagÅ‚Ã³wek
 
     double last_valid_value = 0.0;
     const double MAX_ADC_VALUE = 4095.0;
