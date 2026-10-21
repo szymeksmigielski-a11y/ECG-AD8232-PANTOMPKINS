@@ -110,18 +110,24 @@ xcopy /Y /D /I /E "$(ProjectDir)data" "$(OutDir)data" &gt;nul</Command>
   <ItemGroup>
     <ClCompile Include="src\Analysis.cpp" />
     <ClCompile Include="src\DataLoader.cpp" />
+    <ClCompile Include="src\ECGRecorder.cpp" />
     <ClCompile Include="src\Filters.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\PanTompkins.cpp" />
+    <ClCompile Include="src\RecorderPanel.cpp" />
+    <ClCompile Include="src\SerialPort.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Analysis.hpp" />
     <ClInclude Include="src\DataLoader.hpp" />
     <ClInclude Include="src\ECGException.hpp" />
+    <ClInclude Include="src\ECGRecorder.hpp" />
     <ClInclude Include="src\ECGSample.hpp" />
     <ClInclude Include="src\Filters.hpp" />
     <ClInclude Include="src\IFilter.hpp" />
     <ClInclude Include="src\PanTompkins.hpp" />
+    <ClInclude Include="src\RecorderPanel.hpp" />
+    <ClInclude Include="src\SerialPort.hpp" />
     <ClInclude Include="src\Stats.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

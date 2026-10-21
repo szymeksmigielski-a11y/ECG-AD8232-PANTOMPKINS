@@ -113,6 +113,18 @@ void DataLoader::saveToBinary(const std::string& filename,
     file.write(reinterpret_cast<const char*>(data.data()), data.size() * sizeof(ECGSample));
 }
 
+void DataLoader::saveToCSV(const std::string& filename,
+    const std::vector<ECGSample>& data) {
+    std::ofstream file(filename);
+    if (!file.is_open())
+        throw ECGException("Nie mozna utworzyc pliku CSV: " + filename);
+
+    // ten sam format, ktory czyta loadFromCSV
+    file << "timestamp_ms,adc_value\n";
+    for (const ECGSample& sample : data)
+        file << sample.timestamp << ',' << sample.value << '\n';
+}
+
 void DataLoader::convertCsvToBinary(const std::string& csvPath) {
     std::vector<ECGSample> data = loadFromCSV(csvPath);
 

@@ -20,16 +20,18 @@ void setup() {
 }
 
 void loop() {
-  static unsigned long lastTime = 0;
+  static unsigned long lastTime = micros();
   unsigned long now = micros();
-  
+
   if (now - lastTime >= 5000) { // 5000µs = 200Hz
-    lastTime = now; // NIE lastTime += 5000, bo analogRead zajmuje czas
-    
-    if (digitalRead(PIN_LO_PLUS) || digitalRead(PIN_LO_MINUS)) {
-      Serial.println(0);
-    } else {
-      Serial.println(adc1_get_raw(ADC1_CHANNEL_0));
+    lastTime += 5000; // staly krok - czestotliwosc nie dryfuje ponizej 200Hz
+
+    int adcValue = 0; // 0 = elektroda odlaczona (LO+ lub LO-)
+    if (!digitalRead(PIN_LO_PLUS) && !digitalRead(PIN_LO_MINUS)) {
+      adcValue = adc1_get_raw(ADC1_CHANNEL_0);
     }
+
+    // krotka: (wartosc, timestamp_ms)
+    Serial.printf("(%d, %lu)\n", adcValue, millis());
   }
 }

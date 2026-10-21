@@ -9,7 +9,8 @@
 #include "DataLoader.hpp"
 #include "PanTompkins.hpp"
 #include "Stats.hpp"
-#include "ECGException.hpp" 
+#include "ECGException.hpp"
+#include "RecorderPanel.hpp"
 #include <filesystem>
 
 enum class AppState {
@@ -108,6 +109,17 @@ int main() {
 
     rebuildTiles();
 
+    // --- NAGRYWANIE Z ARDUINO (ikona w prawym gornym rogu) ---
+    RecorderPanel recorderPanel(font, DATA_DIR, [&]() {
+        try {
+            csvFiles = loader.scanFolder(DATA_DIR.string());
+            rebuildTiles();
+        }
+        catch (const ECGException& e) {
+            std::cerr << "Blad skanowania folderu: " << e.what() << std::endl;
+        }
+        });
+
     sf::Text title("Wybierz plik EKG:", font, 22);
     title.setPosition(30.0f, 30.0f);
     title.setFillColor(sf::Color(180, 180, 255));
@@ -141,8 +153,14 @@ int main() {
         sf::Event event;
         while (window.pollEvent(event)) {
 
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) {
+                recorderPanel.shutdown();   // zapisuje trwajace nagranie
                 window.close();
+            }
+
+            // wpisywanie nazwy pliku w okienku nagrywania
+            if (event.type == sf::Event::TextEntered && currentState == AppState::FILE_BROWSER)
+                recorderPanel.handleText(event.text.unicode);
 
             if (event.type == sf::Event::MouseButtonPressed &&
                 event.mouseButton.button == sf::Mouse::Left) {
@@ -154,8 +172,9 @@ int main() {
 
                 if (currentState == AppState::FILE_BROWSER) {
 
-                    bool handledConvert = false;
-                    for (size_t i = 0; i < convertButtons.size(); i++) {
+                    // ikona i okienko nagrywania maja pierwszenstwo
+                    bool handledConvert = recorderPanel.handleClick(mousePos);
+                    for (size_t i = 0; i < convertButtons.size() && !handledConvert; i++) {
                         if (convertButtons[i].getGlobalBounds().contains(mousePos)) {
 
                             int fileIdx = convertButtonFileIndex[i];
@@ -269,6 +288,7 @@ int main() {
             for (auto& label : tileLabels)    window.draw(label);
             for (auto& btn : convertButtons)  window.draw(btn);
             for (auto& lbl : convertLabels)   window.draw(lbl);
+            recorderPanel.draw(window);
         }
         else if (currentState == AppState::SIGNAL_VIEW) {
 

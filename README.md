@@ -41,6 +41,23 @@ The build output goes to `DESKTOP-APP/VS/Build/<Configuration>/`. A post-build s
   - top-right panel: average / minimum / maximum heart rate and number of detected beats
 - **← / →** scroll the signal, **< Wroc** returns to the file browser.
 
+### Recording from the ESP32
+
+1. Flash the firmware from `ESP32/arduino_ECG` and connect the board over USB. Close the Arduino IDE Serial Monitor, because only one program can have the COM port open at a time.
+2. Click the **Arduino icon** in the top-right corner of the file browser. The app scans all COM ports and listens on each of them.
+3. Read the status line in the recorder window:
+
+   | Data on the COM port | Status | Record |
+   | :--- | :--- | :--- |
+   | nothing | Podłącz Arduino | disabled |
+   | anything | Podłączono Arduino | disabled |
+   | tuples with zeros only | Podłącz elektrody | disabled |
+   | tuples with values | Elektrody podłączone | **enabled** |
+
+4. Optionally type a name in **Nazwa pliku** (letters, digits, `_` and `-`; spaces become `_` and Polish letters are replaced with Latin ones). Choose the file format (**CSV** or **EKG**) and press **Record**. A 7-second countdown ("Ustaw się w wygodnej pozycji") gives you time to settle down, then the recording starts. Press **Stop recording** to finish. Pressing it during the countdown cancels the recording. The last 3 seconds of every recording are discarded when it is saved (by ESP32 timestamps), so the movement of reaching for the mouse does not end up in the file. A recording shorter than 3 s is not saved.
+
+The recording is saved to `data/` under the typed name, or as `zapis_200Hz_<date>_<time>` when the field is empty, with the `.csv` or `.ekg` extension added automatically. An existing file is never overwritten: `_2`, `_3`, … is appended instead. The new file appears as a new tile. Samples are stored exactly as received from the board: timestamps come from the ESP32, and zeros caused by a detached electrode during the recording are kept. Closing the recorder window or the application during a recording stops it and saves the file.
+
 The application reads `assets/font.ttf` and `data/` relative to its working directory, so start it from the folder that contains the `.exe`. Double-clicking the exe or pressing F5 in Visual Studio both do this.
 
 ---
@@ -79,7 +96,15 @@ Heart-rate statistics are computed from the RR intervals between detected beats;
 
 ### Firmware
 
-`ESP32/arduino_ECG/arduino_ECG.ino` (Arduino IDE, ESP32 board package). It reads the ADC directly through `driver/adc.h` (12-bit) every 5000 µs (200 Hz) and prints one value per line over serial at **115200 baud**. When an electrode is disconnected (LO+ or LO-) it prints `0`.
+`ESP32/arduino_ECG/arduino_ECG.ino` (Arduino IDE, ESP32 board package). It reads the ADC directly through `driver/adc.h` (12-bit) every 5000 µs (200 Hz) and prints one tuple per line over serial at **115200 baud**:
+
+```text
+(adc_value, timestamp_ms)
+(1873, 104215)
+(1880, 104220)
+```
+
+`timestamp_ms` is `millis()` since the board started. When an electrode is disconnected (LO+ or LO-), `adc_value` is `0`.
 
 ---
 
@@ -96,11 +121,11 @@ timestamp_ms,adc_value
 0,606
 ```
 
-Values `<= 0` (lead-off) or `> 4095` are replaced with the last valid sample.
+When a CSV file is opened, values `<= 0` (lead-off) or `> 4095` are replaced with the last valid sample. The file itself is not modified.
 
 ### Binary (`.ekg`)
 
-The **Konwertuj** button converts a CSV file into a compact binary file that loads faster:
+A compact binary file that loads faster. It is written by the recorder (format **EKG**) or by the **Konwertuj** button, which converts a CSV file:
 
 ```text
 [4 bytes]                    magic number "EKGB"
@@ -123,8 +148,9 @@ DESKTOP-APP/VS/ECGPROJECTOR/  Visual Studio 2022 solution
 
 ## Known limitations
 
-- Visualization is **offline**: the desktop app works on recorded files, not on a live serial stream.
-- The firmware outputs raw values only. The tool used to save the serial stream as a CSV file with timestamps is **not** part of this repository; any serial logger producing the CSV format above will work.
+- Visualization is **offline**: the signal can be recorded from the ESP32, but it is analysed and displayed only after the recording is saved, not live.
+- The ESP32 is detected by listening for data, so another device that sends data on a COM port is also reported as "Podłączono Arduino".
+- `.ekg` files keep lead-off zeros as recorded. Unlike CSV files, they are not cleaned when opened.
 - A 200 Hz sampling rate is assumed throughout (filters, time axis, heart-rate calculation).
 - Windows x64 only (Visual Studio project, bundled Windows build of SFML).
 

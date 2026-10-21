@@ -16,6 +16,7 @@ public:
     std::vector<ECGSample> loadFromCSV(const std::string& filename);
     std::vector<ECGSample> loadFromBinary(const std::string& filename);
     void saveToBinary(const std::string& filename,const std::vector<ECGSample>& data);
+    void saveToCSV(const std::string& filename, const std::vector<ECGSample>& data);
     void convertCsvToBinary(const std::string& csvPath);
     std::vector<std::string> scanFolder(const std::string& folderPath);
 };
